@@ -1,0 +1,92 @@
+[
+  {
+    "question": "What's the safest way to share your bank account number with a friend?",
+    "choices": ["Email", "Text message", "Through your bank's app", "Social media DM"],
+    "correctIndex": 2,
+    "funFact": "Most banks never ask for your password. Anyone who does — including 'support' calls — is a scammer."
+  },
+  {
+    "question": "What does 'SSL' on a banking website mean?",
+    "choices": ["The site is slow", "Your data is encrypted in transit", "It's a special server", "It's an ad network"],
+    "correctIndex": 1,
+    "funFact": "When you see a padlock next to a URL, SSL (now TLS) scrambles your data so no one in between can read it."
+  },
+  {
+    "question": "You get an email saying 'Your account is locked, click here to verify'. What should you do?",
+    "choices": ["Click the link to fix it", "Forward it to your bank", "Reply with your password", "Open your bank's app directly and check"],
+    "correctIndex": 3,
+    "funFact": "Phishing emails cost banks over $50 billion globally each year. Real banks always let you check inside their own app."
+  },
+  {
+    "question": "What is compound interest?",
+    "choices": ["Interest paid only once", "Interest on your interest", "A type of loan", "A monthly fee"],
+    "correctIndex": 1,
+    "funFact": "Einstein supposedly called compound interest 'the eighth wonder of the world'. Save early — your interest earns more interest over time."
+  },
+  {
+    "question": "Is it safe to log into your bank app on free public Wi-Fi?",
+    "choices": ["Yes, always", "Only on the bank's app", "Only on the website", "No, never without a VPN"],
+    "correctIndex": 3,
+    "funFact": "Public Wi-Fi can be sniffed by attackers. Use mobile data or a VPN for anything involving money."
+  },
+  {
+    "question": "What is two-factor authentication (2FA)?",
+    "choices": ["Two passwords", "A password plus a second proof of identity", "Logging in twice", "A backup email"],
+    "correctIndex": 1,
+    "funFact": "2FA blocks more than 99% of automated account-takeover attacks. Always turn it on for your bank."
+  },
+  {
+    "question": "What's an 'ATM skimmer'?",
+    "choices": ["A bank teller", "A device that steals card info from ATMs", "A receipt printer", "A withdrawal limit"],
+    "correctIndex": 1,
+    "funFact": "Skimmers are tiny devices stuck onto card slots. Wiggle the card reader before inserting your card — if it moves, walk away."
+  },
+  {
+    "question": "Why does a deposited check sometimes take a few days to 'clear'?",
+    "choices": ["Banks are slow on purpose", "The funds are being verified with the issuing bank", "It's a holiday", "The ATM is broken"],
+    "correctIndex": 1,
+    "funFact": "Clearing time exists because the receiving bank waits for the issuing bank to confirm the check isn't bounced or fraudulent."
+  },
+  {
+    "question": "What is a routing number?",
+    "choices": ["Your account password", "A code that identifies your bank", "Your ATM PIN", "Your card's expiry date"],
+    "correctIndex": 1,
+    "funFact": "Routing numbers were invented in 1910 by the American Bankers Association to speed up check processing."
+  },
+  {
+    "question": "When was the first credit card introduced?",
+    "choices": ["1920s", "1950s", "1980s", "2000s"],
+    "correctIndex": 1,
+    "funFact": "Diners Club launched the first widely-used credit card in 1950. The legend says the founder forgot his wallet at dinner and got inspired."
+  },
+  {
+    "question": "What's the biggest red flag in a 'support' phone call from your bank?",
+    "choices": ["They greet you by name", "They ask for your password or PIN", "They mention recent transactions", "They put you on hold"],
+    "correctIndex": 1,
+    "funFact": "Real banks NEVER ask for your password or PIN over the phone. Hang up and call the number on the back of your card instead."
+  },
+  {
+    "question": "What does 'hide balance' actually do in a banking app?",
+    "choices": ["Logs you out", "Hides your balance from view (visual only)", "Freezes your account", "Disables transactions"],
+    "correctIndex": 1,
+    "funFact": "Hiding your balance is a shoulder-surfing defense — useful in cafés, on the bus, or anywhere someone might glance at your screen."
+  },
+  {
+    "question": "What is mobile check deposit?",
+    "choices": ["Mailing a check to the bank", "Photographing a check with your phone to deposit it", "Sending money to a friend", "An overdraft feature"],
+    "correctIndex": 1,
+    "funFact": "After depositing via photo, write 'VOID' or 'For mobile deposit only' on the paper check, then shred it after 30 days."
+  },
+  {
+    "question": "What's the safest length for a banking password?",
+    "choices": ["4 characters", "6 characters", "8 characters", "12 or more characters"],
+    "correctIndex": 3,
+    "funFact": "A 12-character password with mixed types takes centuries to brute-force. An 8-character one can be cracked in hours."
+  },
+  {
+    "question": "Why do banking apps log you out after a few minutes of inactivity?",
+    "choices": ["To save battery", "To force you to re-open the app", "To protect your account if you leave the phone unattended", "To show more ads"],
+    "correctIndex": 2,
+    "funFact": "Auto-logout is one of the simplest fraud-prevention tools — even if someone steals your unlocked phone, they can't get into your bank."
+  }
+]

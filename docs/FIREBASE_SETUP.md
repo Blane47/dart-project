@@ -95,18 +95,47 @@ void main() async {
 
 ## 6. Seed the quiz questions (one-time)
 
-In the Firebase console → Firestore → create the `quiz_questions` collection and add documents with this shape:
+15 ready-to-use questions are in [`docs/quiz-seed.json`](./quiz-seed.json) covering bank safety, security, fun facts, and basic concepts.
 
-```json
-{
-  "question": "What's the safest way to share your bank account number?",
-  "choices": ["Email", "Text message", "Through the bank's app", "Social media DM"],
-  "correctIndex": 2,
-  "funFact": "Most banks never ask for your password — anyone who does is a scammer."
-}
+**Easiest import (manual, ~10 min):**
+1. Firebase console → **Firestore Database**
+2. Click **Start collection** → name it `quiz_questions`
+3. Open `docs/quiz-seed.json` in your editor
+4. For each object in the array, click **Add document** in the console, leave the ID as auto-generated, and add the four fields (`question` string, `choices` array, `correctIndex` number, `funFact` string)
+
+**Faster import (Node script, ~2 min):**
+```bash
+cd dart-project
+npm init -y
+npm install firebase-admin
 ```
 
-Add 10–15 questions to start. The quiz UI picks 5 at random per game.
+Create `scripts/seed-quiz.js`:
+```js
+const admin = require("firebase-admin");
+const questions = require("../docs/quiz-seed.json");
+
+// Get this file: Firebase console → Project Settings → Service Accounts → Generate new private key
+admin.initializeApp({
+  credential: admin.credential.cert(require("./service-account.json")),
+});
+
+const db = admin.firestore();
+(async () => {
+  for (const q of questions) {
+    await db.collection("quiz_questions").add(q);
+    console.log("Added:", q.question);
+  }
+  console.log(`Done — ${questions.length} questions seeded.`);
+  process.exit(0);
+})();
+```
+
+Then `node scripts/seed-quiz.js`.
+
+**Don't commit `service-account.json`** — add it to `.gitignore`.
+
+The quiz UI picks 5 at random per game.
 
 ## 7. Share config
 

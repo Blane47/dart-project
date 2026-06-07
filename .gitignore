@@ -51,3 +51,8 @@ lib/firebase_options.dart
 .firebaserc
 firebase.json
 .firebase/
+
+# Seed script secrets
+scripts/service-account.json
+node_modules/
+package-lock.json
