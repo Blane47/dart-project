@@ -251,6 +251,32 @@ distinct engineering or design skill.
 - **Honest production awareness** — the transfer's relaxed rule is documented with
   the note that production would use a Cloud Function.
 
+### How the spending-insights graph is built
+
+The analytics chart is rendered with the **`fl_chart`** package (added in
+`pubspec.yaml`). The implementation lives in
+`lib/features/insights/insights_screen.dart`:
+
+1. **Data source** — it watches `transactionsStreamProvider(uid)` to get the live
+   ledger (newest-first). No analytics data is stored separately; the chart is
+   derived on the fly.
+2. **Turning transactions into points** — the list is reversed to oldest-first,
+   then mapped to chart points: for each transaction `i`, a
+   `FlSpot(i.toDouble(), transaction.balanceAfter)` is created. So the x-axis is
+   the transaction sequence and the y-axis is the running balance after each one.
+3. **Drawing it** — the points are passed to the **`LineChart`** widget via a
+   **`LineChartBarData`** inside **`LineChartData`**:
+   - `LineChart(LineChartData(lineBarsData: [LineChartBarData(spots: spots, …)]))`
+   - `isCurved: true` smooths the line; `belowBarData: BarAreaData(gradient: …)`
+     paints the soft purple fade under it; grid/titles/border are hidden for a
+     clean, minimal look.
+4. **The summary tiles** (Total in / Total out / Net / Movements) are plain Dart:
+   the transaction list is folded — deposits summed into `totalIn`, withdrawals
+   into `totalOut`, with `net = totalIn − totalOut` and `movements = list length`.
+
+In short: **`fl_chart`'s `LineChart` / `LineChartBarData`, fed a `List<FlSpot>`
+built from each transaction's `balanceAfter`.**
+
 ---
 
 ## 6. Team responsibilities — assigned vs delivered
