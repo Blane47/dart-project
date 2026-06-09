@@ -85,12 +85,14 @@ lib/
 │   ├── transfer/              # peer-to-peer send (innovation)
 │   ├── goals/                 # savings goals / pots (innovation)
 │   ├── insights/              # spending charts (innovation)
+│   ├── card/                  # virtual card (innovation)
+│   ├── loan/                  # loans with credit scoring (innovation)
 │   ├── quiz/                  # financial-literacy game
 │   └── settings/              # profile, prefs, sign out
 └── shared/                    # cross-feature building blocks
     ├── theme/                 # AppColors, AppTextStyles, AppSpacing/Radii/Durations/Shadows, AppTheme
     ├── widgets/               # PrimaryButton, GlassCard, BalanceText, GradientBloom, AppTextField, EmptyState…
-    ├── models/                # UserProfile, BankTransaction, QuizQuestion, SavingsGoal
+    ├── models/                # UserProfile, BankTransaction, QuizQuestion, SavingsGoal, VirtualCard, Loan
     ├── services/              # FirebaseAuthService, FirestoreService, PrefsService (+ Riverpod providers)
     ├── utils/                 # currency formatting, validators
     └── strings.dart           # all user-facing copy in one place
@@ -109,11 +111,13 @@ lib/
 users/{uid}                     → { email, displayName, balance, createdAt }
 users/{uid}/transactions/{id}   → { amount, type, description, balanceAfter, createdAt }
 users/{uid}/goals/{id}          → { name, target, saved, createdAt }
+users/{uid}/cards/{id}          → { number, holder, expMonth, expYear, cvv, frozen, createdAt }
+users/{uid}/loans/{id}          → { principal, termMonths, ratePct, totalRepayable, outstanding, monthlyPayment, purpose, status, createdAt }
 quiz_questions/{id}             → { question, choices[], correctIndex, funFact }
 ```
 
 ### Security rules (`firestore.rules`)
-- A user can read/write **their own** profile, transactions and goals.
+- A user can read/write **their own** profile, transactions, goals, cards and loans.
 - Profiles are **readable by any signed-in user** so a transfer can look up a
   recipient by email.
 - `quiz_questions` are read-only to clients (seeded by an admin script).
@@ -200,9 +204,52 @@ goal refunds its balance.
 *Why:* an engaging, visual money-management feature; reinforces the atomic-money
 pattern and adds personality (Monzo-style pots).
 
+**10. Virtual card** *(card)*
+Issue a (simulated) virtual card — a Luhn-valid number, CVV and expiry — shown as
+a gradient card you tap to flip and reveal its details. Freeze/unfreeze it, and
+make simulated **online payments** that debit the balance and log a `Card •
+merchant` transaction.
+*Why:* virtual cards are how modern banks let users pay online safely without
+exposing their real card; freezing instantly is a flagship neobank feature.
+
+**11. Loans** *(loan)*
+Apply for a loan with a **live eligibility preview**: the app computes a credit
+score from your income + account activity, shows the max you qualify for, the
+rate, and the monthly repayment, then (if approved) disburses to your balance and
+tracks repayment with a progress bar.
+*Why:* credit is core to banking; basing eligibility partly on real in-app
+behaviour mirrors how modern lenders use transaction data for instant decisions.
+
 **Supporting:** Onboarding (first-run intro, shown once), Transactions (full
 history with All/Deposits/Withdrawals filter), Settings (profile, hide-balance
 default, confirmed sign-out).
+
+---
+
+## 5a. Innovations — and why they matter in modern banking
+
+The app goes beyond the brief with five innovations. Each is something real
+banks/neobanks (Revolut, Monzo, Cash App) actually offer, and each demonstrates a
+distinct engineering or design skill.
+
+| Innovation | What it does | Why it matters in modern banking |
+|---|---|---|
+| **Peer-to-peer transfers** | Send money to another user by email; one atomic Firestore transaction debits the sender, credits the recipient, and records both ledger entries. | Instant P2P payments (think Cash App / Revolut) are now an expectation, not a luxury. The atomic transaction guarantees money is never created or lost — the core correctness property of any payment system. |
+| **Spending insights** | Balance-over-time chart + total in/out/net/movements, derived purely from the transaction ledger. | Personal-finance analytics drive engagement and help users budget; deriving insight from raw transactions is exactly what modern banking apps do to add value on top of plain statements. |
+| **Savings goals (pots)** | Ring-tracked goals you fund from your balance and can withdraw/delete, all atomic. | "Pots/spaces/vaults" are a signature neobank feature that nudges healthier saving behaviour and increases stickiness. |
+| **Virtual card** | Simulated Luhn-valid card with flip-to-reveal, freeze/unfreeze, and online payments that hit the ledger. | Virtual cards let people pay online without exposing their real card, and instant freeze is a key fraud-control users love — a hallmark of digital-first banks. |
+| **Loans** | Credit-scored loan application with a live eligibility preview, disbursement to balance, and repayment tracking. | Data-driven, instant lending decisions (using account behaviour, not just paperwork) are how modern fintech lenders operate — fast, transparent, and accessible. |
+
+**Cross-cutting engineering themes the innovations showcase:**
+- **Atomic money movement** — every balance change (deposit, transfer, card
+  payment, goal move, loan disburse/repay) runs in a Firestore transaction, so
+  data can never drift.
+- **Real-time UI** — balances, lists, goals, cards and loans all update live via
+  streamed providers.
+- **Derived intelligence** — insights and loan credit-scoring are computed from
+  existing data rather than stored, showing data-modelling maturity.
+- **Honest production awareness** — the transfer's relaxed rule is documented with
+  the note that production would use a Cloud Function.
 
 ---
 
@@ -247,11 +294,14 @@ was **assigned** and what was **delivered** in that area.
 - **Onboarding** — a swipeable three-slide intro with an animated page
   indicator, shown only on first launch.
 
-### Shared work
+### Shared work & innovations
 The `lib/shared/` design system (theme, reusable widgets, models, utilities) and
 the GoRouter navigation layer were built as shared foundations that all three
-areas build on. The three **innovations** (transfers, insights, savings goals)
-extend the same shared service + design layers.
+areas build on. The five **innovations** — peer-to-peer transfers, spending
+insights, savings goals, the virtual card, and loans — extend the same shared
+service + design layers (each adds a model, `FirestoreService` methods with
+atomic transactions, and a feature screen) and were delivered as joint
+enhancements on top of the core areas above.
 
 ---
 

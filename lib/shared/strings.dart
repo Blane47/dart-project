@@ -169,6 +169,57 @@ abstract final class AppStrings {
   static String savedOfTarget(String saved, String target) =>
       '$saved of $target';
 
+  // ---- Virtual card ----
+  static const String card = 'Card';
+  static const String virtualCard = 'Virtual card';
+  static const String noCardTitle = 'No card yet';
+  static const String noCardBody =
+      'Create a virtual card to pay online securely.';
+  static const String createCard = 'Create card';
+  static const String tapToReveal = 'Tap the card to reveal details';
+  static const String freeze = 'Freeze';
+  static const String unfreeze = 'Unfreeze';
+  static const String frozenLabel = 'FROZEN';
+  static const String payOnline = 'Pay online';
+  static const String merchantLabel = 'Merchant';
+  static const String merchantHint = 'e.g. Spotify';
+  static const String pay = 'Pay';
+  static const String deleteCard = 'Delete card';
+  static String paymentSuccess(String amount, String merchant) =>
+      '$amount paid to $merchant.';
+
+  // ---- Loan ----
+  static const String loan = 'Loan';
+  static const String loans = 'Loans';
+  static const String applyForLoan = 'Apply for a loan';
+  static const String loanIntro =
+      'Borrow based on your income and account activity.';
+  static const String loanAmountLabel = 'How much do you need?';
+  static const String termLabel = 'Repayment term';
+  static String termMonths(int n) => '$n months';
+  static const String monthlyIncomeLabel = 'Monthly income';
+  static const String employmentLabel = 'Employment status';
+  static const String purposeLabel = 'Purpose';
+  static String youQualifyUpTo(String amount) =>
+      'You qualify for up to $amount';
+  static const String estMonthly = 'Est. monthly';
+  static const String rateLabel = 'Rate';
+  static const String totalRepayableLabel = 'Total repayable';
+  static const String creditScoreLabel = 'Credit score';
+  static const String submitApplication = 'Apply now';
+  static const String loanApprovedTitle = 'Loan approved!';
+  static String loanApprovedBody(String amount) =>
+      '$amount has been added to your balance.';
+  static const String loanDeclinedTitle = 'Not approved yet';
+  static const String activeLoanTitle = 'Active loan';
+  static const String outstandingLabel = 'Outstanding';
+  static const String monthlyPaymentLabel = 'Monthly payment';
+  static const String repay = 'Repay';
+  static const String makePayment = 'Make a payment';
+  static const String loanClearedTitle = 'Loan cleared';
+  static const String loanClearedBody =
+      'Nice work — you have repaid this loan.';
+
   // ---- Generic errors ----
   static const String genericError = 'Something went wrong. Please try again.';
 }

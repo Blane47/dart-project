@@ -57,9 +57,9 @@ class DashboardScreen extends ConsumerWidget {
                   ),
                   const SizedBox(width: AppSpacing.sm),
                   QuickActionTile(
-                    icon: Icons.savings_rounded,
-                    label: AppStrings.goals,
-                    onTap: () => context.push(AppRoutes.goals),
+                    icon: Icons.credit_card_rounded,
+                    label: AppStrings.card,
+                    onTap: () => context.push(AppRoutes.card),
                   ),
                 ],
               ),
@@ -67,11 +67,27 @@ class DashboardScreen extends ConsumerWidget {
               Row(
                 children: [
                   QuickActionTile(
+                    icon: Icons.account_balance_rounded,
+                    label: AppStrings.loan,
+                    onTap: () => context.push(AppRoutes.loan),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  QuickActionTile(
+                    icon: Icons.savings_rounded,
+                    label: AppStrings.goals,
+                    onTap: () => context.push(AppRoutes.goals),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  QuickActionTile(
                     icon: Icons.show_chart_rounded,
                     label: AppStrings.insights,
                     onTap: () => context.push(AppRoutes.insights),
                   ),
-                  const SizedBox(width: AppSpacing.sm),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Row(
+                children: [
                   QuickActionTile(
                     icon: Icons.receipt_long_rounded,
                     label: AppStrings.transactions,
@@ -83,6 +99,8 @@ class DashboardScreen extends ConsumerWidget {
                     label: AppStrings.quiz,
                     onTap: () => context.push(AppRoutes.quiz),
                   ),
+                  const SizedBox(width: AppSpacing.sm),
+                  const Expanded(child: SizedBox()),
                 ],
               ),
               const SizedBox(height: AppSpacing.xl),

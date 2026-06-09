@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -261,6 +263,215 @@ class FirestoreService {
       txn.delete(goalRef);
     });
   }
+
+  // ---- Virtual cards --------------------------------------------------------
+
+  Stream<List<VirtualCard>> cardsStream(String uid) {
+    return _userDoc(uid)
+        .collection('cards')
+        .orderBy('createdAt')
+        .snapshots()
+        .map((q) => q.docs.map(VirtualCard.fromDoc).toList());
+  }
+
+  /// Issues a new (simulated) card: a Luhn-valid number, CVV, and a 3-year
+  /// expiry. Not a real PAN — production needs a card-issuing provider.
+  Future<void> createCard({required String uid, required String holder}) {
+    final rng = Random();
+    final number = _luhnNumber(rng);
+    final cvv = (rng.nextInt(900) + 100).toString();
+    // Expiry: 3 years out. Month derived from the card id-ish randomness.
+    final month = rng.nextInt(12) + 1;
+    return _userDoc(uid).collection('cards').add({
+      'number': number,
+      'holder': holder.toUpperCase(),
+      'expMonth': month,
+      'expYear': 2029,
+      'cvv': cvv,
+      'frozen': false,
+      'createdAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  Future<void> setCardFrozen({
+    required String uid,
+    required String cardId,
+    required bool frozen,
+  }) {
+    return _userDoc(
+      uid,
+    ).collection('cards').doc(cardId).update({'frozen': frozen});
+  }
+
+  Future<void> deleteCard({required String uid, required String cardId}) {
+    return _userDoc(uid).collection('cards').doc(cardId).delete();
+  }
+
+  /// Simulates an online payment on [cardId]: debits the balance and logs a
+  /// withdrawal. Declines if the card is frozen or funds are insufficient.
+  Future<void> payWithCard({
+    required String uid,
+    required String cardId,
+    required String merchant,
+    required double amount,
+  }) async {
+    if (amount <= 0) {
+      throw const BankingException('Enter an amount greater than zero.');
+    }
+    final userRef = _userDoc(uid);
+    final cardRef = _userDoc(uid).collection('cards').doc(cardId);
+    final txRef = _txCollection(uid).doc();
+    await _db.runTransaction((txn) async {
+      final cardSnap = await txn.get(cardRef);
+      if ((cardSnap.data()?['frozen'] as bool?) ?? false) {
+        throw const BankingException('This card is frozen. Unfreeze it first.');
+      }
+      final u = await txn.get(userRef);
+      final bal = (u.data()?['balance'] as num?)?.toDouble() ?? 0;
+      if (bal < amount) {
+        throw const BankingException('Insufficient balance for this payment.');
+      }
+      final next = bal - amount;
+      txn.set(userRef, {'balance': next}, SetOptions(merge: true));
+      txn.set(txRef, {
+        'amount': amount,
+        'type': TransactionType.withdrawal.name,
+        'description': 'Card • $merchant',
+        'balanceAfter': next,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+    });
+  }
+
+  /// Builds a 16-digit Luhn-valid number from a fake BIN.
+  static String _luhnNumber(Random rng) {
+    final digits = <int>[4, 2, 7, 6, 1, 2]; // fake "Vault" BIN
+    while (digits.length < 15) {
+      digits.add(rng.nextInt(10));
+    }
+    // Luhn checksum over the 15 partial digits.
+    var sum = 0;
+    for (var i = 0; i < digits.length; i++) {
+      var d = digits[digits.length - 1 - i];
+      if (i % 2 == 0) {
+        d *= 2;
+        if (d > 9) d -= 9;
+      }
+      sum += d;
+    }
+    digits.add((10 - (sum % 10)) % 10);
+    return digits.join();
+  }
+
+  // ---- Loans ----------------------------------------------------------------
+
+  Stream<List<Loan>> loansStream(String uid) {
+    return _userDoc(uid)
+        .collection('loans')
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((q) => q.docs.map(Loan.fromDoc).toList());
+  }
+
+  /// Evaluates eligibility ([evaluateLoan]) and, if approved, disburses the
+  /// principal to the balance and creates the loan — all atomically. Returns the
+  /// decision either way so the UI can show approval details or the decline
+  /// reason.
+  Future<LoanDecision> applyForLoan({
+    required String uid,
+    required double requestedAmount,
+    required int termMonths,
+    required double monthlyIncome,
+    required String employmentStatus,
+    required String purpose,
+    required double totalDeposited,
+    required double currentBalance,
+    required int accountAgeDays,
+    required bool hasActiveLoan,
+  }) async {
+    final decision = evaluateLoan(
+      requestedAmount: requestedAmount,
+      termMonths: termMonths,
+      monthlyIncome: monthlyIncome,
+      totalDeposited: totalDeposited,
+      currentBalance: currentBalance,
+      accountAgeDays: accountAgeDays,
+      hasActiveLoan: hasActiveLoan,
+    );
+    if (!decision.approved) return decision;
+
+    final userRef = _userDoc(uid);
+    final loanRef = _userDoc(uid).collection('loans').doc();
+    final txRef = _txCollection(uid).doc();
+    await _db.runTransaction((txn) async {
+      final u = await txn.get(userRef);
+      final bal = (u.data()?['balance'] as num?)?.toDouble() ?? 0;
+      final next = bal + decision.amount;
+      txn.set(userRef, {'balance': next}, SetOptions(merge: true));
+      txn.set(loanRef, {
+        'principal': decision.amount,
+        'termMonths': termMonths,
+        'ratePct': decision.ratePct,
+        'totalRepayable': decision.totalRepayable,
+        'outstanding': decision.totalRepayable,
+        'monthlyPayment': decision.monthlyPayment,
+        'purpose': purpose,
+        'employmentStatus': employmentStatus,
+        'creditScore': decision.creditScore,
+        'status': LoanStatus.active.name,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+      txn.set(txRef, {
+        'amount': decision.amount,
+        'type': TransactionType.deposit.name,
+        'description': 'Loan disbursed',
+        'balanceAfter': next,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+    });
+    return decision;
+  }
+
+  /// Repays [amount] toward a loan: debits the balance, reduces the outstanding,
+  /// and marks the loan paid when it reaches zero.
+  Future<void> repayLoan({
+    required String uid,
+    required String loanId,
+    required double amount,
+  }) async {
+    if (amount <= 0) {
+      throw const BankingException('Enter an amount greater than zero.');
+    }
+    final userRef = _userDoc(uid);
+    final loanRef = _userDoc(uid).collection('loans').doc(loanId);
+    final txRef = _txCollection(uid).doc();
+    await _db.runTransaction((txn) async {
+      final u = await txn.get(userRef);
+      final l = await txn.get(loanRef);
+      final bal = (u.data()?['balance'] as num?)?.toDouble() ?? 0;
+      final outstanding = (l.data()?['outstanding'] as num?)?.toDouble() ?? 0;
+      final pay = amount > outstanding ? outstanding : amount;
+      if (bal < pay) {
+        throw const BankingException('Insufficient balance for this payment.');
+      }
+      final newBal = bal - pay;
+      final newOutstanding = outstanding - pay;
+      txn.set(userRef, {'balance': newBal}, SetOptions(merge: true));
+      txn.update(loanRef, {
+        'outstanding': newOutstanding,
+        'status': newOutstanding <= 0
+            ? LoanStatus.paid.name
+            : LoanStatus.active.name,
+      });
+      txn.set(txRef, {
+        'amount': pay,
+        'type': TransactionType.withdrawal.name,
+        'description': 'Loan repayment',
+        'balanceAfter': newBal,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+    });
+  }
 }
 
 /// A data-layer error whose [message] is safe to show directly in the UI.
@@ -301,4 +512,14 @@ final quizQuestionsProvider = FutureProvider<List<QuizQuestion>>(
 /// Live savings goals for a given uid.
 final goalsStreamProvider = StreamProvider.family<List<SavingsGoal>, String>(
   (ref, uid) => ref.watch(firestoreServiceProvider).goalsStream(uid),
+);
+
+/// Live virtual cards for a given uid.
+final cardsStreamProvider = StreamProvider.family<List<VirtualCard>, String>(
+  (ref, uid) => ref.watch(firestoreServiceProvider).cardsStream(uid),
+);
+
+/// Live loans for a given uid.
+final loansStreamProvider = StreamProvider.family<List<Loan>, String>(
+  (ref, uid) => ref.watch(firestoreServiceProvider).loansStream(uid),
 );

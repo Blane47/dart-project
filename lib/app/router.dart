@@ -6,10 +6,12 @@ import 'package:go_router/go_router.dart';
 import '../features/auth/forgot_password_screen.dart';
 import '../features/auth/sign_in_screen.dart';
 import '../features/auth/sign_up_screen.dart';
+import '../features/card/card_screen.dart';
 import '../features/dashboard/dashboard_screen.dart';
 import '../features/deposit/deposit_screen.dart';
 import '../features/goals/goals_screen.dart';
 import '../features/insights/insights_screen.dart';
+import '../features/loan/loan_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
 import '../features/quiz/quiz_screen.dart';
 import '../features/settings/settings_screen.dart';
@@ -97,6 +99,8 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         builder: (_, _) => const TransferScreen(),
       ),
       GoRoute(path: AppRoutes.goals, builder: (_, _) => const GoalsScreen()),
+      GoRoute(path: AppRoutes.card, builder: (_, _) => const CardScreen()),
+      GoRoute(path: AppRoutes.loan, builder: (_, _) => const LoanScreen()),
     ],
   );
   ref.onDispose(router.dispose);

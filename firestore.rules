@@ -27,6 +27,16 @@ service cloud.firestore {
       match /goals/{goalId} {
         allow read, write: if request.auth != null && request.auth.uid == uid;
       }
+
+      // Virtual cards: strictly the owner.
+      match /cards/{cardId} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
+
+      // Loans: strictly the owner.
+      match /loans/{loanId} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
     }
 
     // Quiz questions: anyone signed in can read; nobody writes from the client.
