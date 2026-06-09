@@ -1,0 +1,38 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{uid} {
+      // Any signed-in user can read profiles — needed to look up a transfer
+      // recipient by email. (Profiles hold no secrets beyond name/email/balance.)
+      allow read: if request.auth != null;
+
+      // Owner can always write their own doc. Other signed-in users may write
+      // too, so a peer-to-peer transfer can credit the recipient's balance.
+      //
+      // NOTE: in production this cross-user write belongs in a Cloud Function so
+      // the server enforces "debit == credit". Functions need the paid Blaze
+      // plan, so for this project the transfer runs client-side in an atomic
+      // Firestore transaction and the rule is relaxed accordingly.
+      allow write: if request.auth != null;
+
+      // Transactions: owner reads their own ledger; any signed-in user may
+      // create entries (so a transfer can write the recipient's deposit record).
+      match /transactions/{txId} {
+        allow read: if request.auth != null && request.auth.uid == uid;
+        allow create: if request.auth != null;
+        allow update, delete: if false;
+      }
+
+      // Savings goals ("pots"): strictly the owner.
+      match /goals/{goalId} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
+    }
+
+    // Quiz questions: anyone signed in can read; nobody writes from the client.
+    match /quiz_questions/{qId} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+  }
+}

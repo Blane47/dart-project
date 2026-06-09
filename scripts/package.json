@@ -1,0 +1,12 @@
+{
+  "name": "dart-project-scripts",
+  "private": true,
+  "version": "1.0.0",
+  "description": "One-off admin scripts (quiz seeding) for the banking app.",
+  "scripts": {
+    "seed": "node seed-quiz.js"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.0.0"
+  }
+}

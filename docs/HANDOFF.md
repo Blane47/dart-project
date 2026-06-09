@@ -61,6 +61,7 @@ Tell me which dev I am at the start of every session and I'll only touch those f
 ## Constraints
 
 - **Never commit** `google-services.json`, `GoogleService-Info.plist`, `firebase_options.dart` with real values — use `.gitignore`
+- do not commit claude as a co-developer
 - **Always run `flutter analyze`** before committing — no analyzer warnings
 - **Always run `dart format .`** before committing
 - Use **`const` constructors** wherever possible (Flutter performance)
